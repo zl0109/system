@@ -16,4 +16,10 @@ public class Student {
     private Integer classId;  // 班级ID
     private Integer parentId; // 家长ID (暂时可以为空，等写家长管理时再绑定)
     private String password;
+
+    //隐身字段：数据库没有，专门用来传给前端显示的中文名
+    @Transient
+    private String className;
+    @Transient
+    private String parentName;
 }

@@ -49,25 +49,21 @@ public class AuthController {
                 return result;
             }
         } else if ("admin".equals(loginDTO.getRole())) {
-            // 1. 先查是不是真正的超级管理员 admin
+            // 部门专属通道：只查 admin 表
             Admin admin = adminRepository.findByUsernameAndPassword(loginDTO.getUsername(), loginDTO.getPassword());
             if (admin != null) {
-                result.put("code", 200); result.put("msg", "超级管理员登录成功");
-                result.put("userId", admin.getAdminId()); result.put("userName", "超级管理员"); result.put("role", "admin");
-                return result;
-            }
-
-            // 🌟 2. 如果不是 admin，再去查查是不是“班主任”走这扇门进来了！
-            Teacher headmaster = teacherRepository.findByPhoneAndPassword(loginDTO.getUsername(), loginDTO.getPassword());
-            if (headmaster != null && "headmaster".equals(headmaster.getRole())) {
-                result.put("code", 200); result.put("msg", "班主任进入管理系统");
-                result.put("userId", headmaster.getTeacherId());
-                result.put("userName", headmaster.getName());
-                result.put("role", "headmaster"); // 真实身份依然保留
+                result.put("code", 200);
+                result.put("msg", "部门账号登录成功");
+                result.put("userId", admin.getAdminId());
+                // 返回真实姓名和具体部门角色
+                result.put("userName", admin.getName() != null ? admin.getName() : "部门领导");
+                result.put("role", "admin");
+                result.put("deptType", admin.getDeptType()); // 把具体是哪个部门也告诉前端
+                result.put("position", admin.getPosition());
                 return result;
             }
         }else if ("student".equals(loginDTO.getRole())) {
-            // 🌟 新增：学生登录逻辑（前端传过来的 username 就是学号）
+            //学生登录逻辑（前端传过来的 username 就是学号）
             Student student = studentRepository.findByStudentNoAndPassword(loginDTO.getUsername(), loginDTO.getPassword());
             if (student != null) {
                 result.put("code", 200); result.put("msg", "学生登录成功");
@@ -81,4 +77,60 @@ public class AuthController {
         result.put("code", 400); result.put("msg", "账号、密码或身份选择错误");
         return result;
     }
+
+    //全角色通用的修改密码接口
+    @PostMapping("/updatePassword")
+    public Map<String, Object> updatePassword(@RequestBody Map<String, Object> params) {
+        Map<String, Object> result = new HashMap<>();
+        Integer userId = (Integer) params.get("userId");
+        String role = (String) params.get("role"); // 接收前端传来的角色标识
+        String oldPassword = (String) params.get("oldPassword");
+        String newPassword = (String) params.get("newPassword");
+
+        boolean success = false;
+        String msg = "原密码错误或系统异常";
+
+        // 🛡️ 根据不同的角色，去不同的表里核对和修改密码
+        if ("parent".equals(role)) {
+            Parent parent = parentRepository.findById(userId).orElse(null);
+            if (parent != null && parent.getPassword().equals(oldPassword)) {
+                parent.setPassword(newPassword);
+                parentRepository.save(parent);
+                success = true;
+            }
+        } else if ("teacher".equals(role) || "headmaster".equals(role)) {
+            // 普通老师和班主任都在 teacher 表里
+            Teacher teacher = teacherRepository.findById(userId).orElse(null);
+            if (teacher != null && teacher.getPassword().equals(oldPassword)) {
+                teacher.setPassword(newPassword);
+                teacherRepository.save(teacher);
+                success = true;
+            }
+        } else if ("admin".equals(role)) {
+            Admin admin = adminRepository.findById(userId).orElse(null);
+            if (admin != null && admin.getPassword().equals(oldPassword)) {
+                admin.setPassword(newPassword);
+                adminRepository.save(admin);
+                success = true;
+            }
+        } else if ("student".equals(role)) {
+            Student student = studentRepository.findById(userId).orElse(null);
+            if (student != null && student.getPassword().equals(oldPassword)) {
+                student.setPassword(newPassword);
+                studentRepository.save(student);
+                success = true;
+            }
+        }
+
+        // 返回结果
+        if (success) {
+            result.put("code", 200);
+            result.put("msg", "密码修改成功，请重新登录！");
+        } else {
+            result.put("code", 400);
+            result.put("msg", msg);
+        }
+        return result;
+    }
+
 }

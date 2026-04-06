@@ -13,4 +13,5 @@ public class Parent {
     private String name;
     private String phone;
     private String password;
+    private String relation;
 }

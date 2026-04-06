@@ -13,6 +13,6 @@ public class Teacher {
     private String name;
     private String phone;
     private String password;
-
-    private String role; // 新增：角色区分 (teacher / headmaster)
+    private String role;
+    private String subject;
 }

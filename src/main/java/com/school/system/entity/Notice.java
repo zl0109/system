@@ -12,10 +12,20 @@ public class Notice {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer noticeId;
 
-    private String title;       // 标题
-    private String content;     // 内容 (你的数据库里有这个)
-    private Date publishTime;   // 发布时间
-    private Integer teacherId;  // 发布教师的 ID
-    private Integer classId;    // 接收班级的 ID
-    private Integer noticeType; // 通知类型 (tinyint 用 Integer 接收即可)
+    private String type;         // 对应前端的 "通知" 或 "作业"
+    private String title;        // 标题
+    private String content;      // 内容
+    private Date publishTime;    // 发布时间
+
+    private Integer teacherId;   // 发布人的ID (老师或班主任)
+    private Integer classId;     // 面向的班级ID (如果是校园通知可以为空)
+    private String subject;
+
+    // 仅用于前端显示的“隐身字段” (不会存入数据库)
+    @Transient
+    private String publisherName;    // 发布人姓名
+    @Transient
+    private String publisherRole;    // 发布人角色(班主任/普通教师)
+    @Transient
+    private String publisherSubject; // 发布人教授科目
 }

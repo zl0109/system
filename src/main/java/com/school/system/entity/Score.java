@@ -2,21 +2,19 @@ package com.school.system.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import java.math.BigDecimal;
 import java.util.Date;
 
 @Data
 @Entity
-@Table(name = "`score`") // 对应数据库里名叫 score 的表
+@Table(name = "`score`")
 public class Score {
-
-    @Id // 告诉 JPA 这是主键
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // 主键自增
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer scoreId;
 
-    private Integer studentId;
-    private String examName;
-    private String subject;
-    private BigDecimal score;
-    private Date entryTime;
+    private String examName;    // 考试名称
+    private String subject;     // 科目
+    private String studentName; // 学生姓名
+    private Double score;       // 分数
+    private Date createTime;    // 录入时间
 }
