@@ -6,4 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface ParentRepository extends JpaRepository<Parent, Integer> {
     // 魔法方法：按照手机号和密码去数据库里找人
     Parent findByPhoneAndPassword(String phone, String password);
+    // 根据手机号查找家长（用于校验手机号是否被注册）
+    Parent findByPhone(String phone);
 }

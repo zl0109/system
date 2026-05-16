@@ -3,14 +3,23 @@ spring:
     name: system
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    # ???????????? school ???
+
     url: jdbc:mysql://localhost:3306/school?serverTimezone=Asia/Shanghai&characterEncoding=utf8&useSSL=false
     username: root
     password: 2022122526
   jpa:
     hibernate:
-      ddl-auto: none # ????????????????? JPA ????
-    show-sql: true   # ????????? SQL ???????
+      ddl-auto: none
+    show-sql: true
 
 server:
-  port: 8080 # ?????????
+  port: 8080
+
+# 支付宝沙箱配置
+alipay:
+  appId: "9021000163655542"
+  appPrivateKey: "MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCfAEywNNHf/wK5kUWhslpu/5oC/uP3xBpvS5eqzSBChAt6F8MyRihMkQGR6hESCvDagnCbmpOSYL33Qv1WUi9FigS/Cr44JSdlmWCCfng4KUydnC7sVsddhAfAJZl45ijhKA1WOD0cvgJCAHqm0BjCot7aQ3RHUYXROrove4m0vu46c4jlSDx+T9qwLcUozD2ChwjrqI5OGP7I9Mq9XpFzANLuBOki8CEifvWI4uuMvZpEjJvJIa+4VqkzkHk+AmeF/ic+2/IOYs1UWloZcgWe9LogJokNdijSAi1F/w9XeYmFA2wljbqtPK9dq27y1PrYZDamzGyso1LzMupU5qfvAgMBAAECggEAeN4GbfBJFojI7n2DPC7TVguRbPOMIj19htsk2R8DhezQuKg1pxLz8XhNhDk1bszIWKLNrUutIJnP7pWK9UKWUrtfbkZhYVbFAxO77JbtFmw2pJ0kgl5ZQTprleI/L0tvCfGjacZoll/OYZPxqLsKB3M+Cxc53jkXi3ykKhI0FSPX5W2XoiD+icf4EkrybvFM8D58AnOVUB4i4GziVWhF+nXqIJD+LNqmM538jjsZd/WszXPHyai5wdVl9qFA5svrJjrg7PlmuJ2KscwKxodaAmTe2ea+fgwsQKi5KkDCPyulH9W4dkmSWgjmH+BQLyqhylSqB9bPDJehTvhWKvQd2QKBgQDTzQwLMILWNc3g2FIUXjhy1w/um16tynxYKKmBTBcQ6073SAZTcujWlWc5CB+jW++hrltcabrBXwB+XYdzp6f8WUjis2DiY8Iysd8apRye8J0qCp/iVT3MKs4J4ADd0aICcisIQ21hImfE6hiyFge9sea1FksNQ1RcKYssdR54RQKBgQDALo0wAGsZwVQ87nKGfv1mnP927U5IMSvIEgcqagPtbw5DMFM0EgRzBCnWuBD0GNzzh5cyOIFfRaJnmEIC5kpLQ16Bvb/98YIEelW7rq03j7TRITKks4KBWUgzRYxXC5W4n2hKQH3RUeufW2oUsGPE8CcAQ68gnEZWOVBRZZMEowKBgQCUbC6ycK5fOpkppa3vRA++umMZzJtOooT8qpIOX6oSWzOdKkX0mKP+K/iICN9S9Qw6exre6eDLva104EoZjDW2K0NeSmHshAgEyo0T+PzTjL42RffA/gcuWhjE5sr0pwEnQaZSRh4SYa/iWEIyGioWjuKjqBm0E6i8ZQh4gSJ3GQKBgQCLZfjRVaxZ/SqOG+OEfT5vHPgMmqsKoGgCclkyQb3hjomI4NepUFxb1SxH7DGX7STvnG1mZygoJAleHUnccpB3MUGu2CUYHQLTHq1rOpO4VouwmeTzJKZIDqvZTNw0E1ohlbb/DPJ2T3aam6NBqIRlyFBx16aC//fg+SeyMvxGAwKBgHPZSV7eblHtLCoAu3AIm07LZZODqFpaOTYtFUYoxRif4fV2i0dVE4/QmVuaawnYGpr1h6tTAZcwoAfNCE2n3EwJNT/tiN7VgJELX1TFDrl0So4q4qNskFN4zl0WRgXRQrT0I9gWpOpEmZxOVrUmDIKspSTv0LZotxWrHfvSSfte"
+  alipayPublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAy7QUDXAqu+/57trYtgrOd3xCpiLKlWWtagI9FtvR2O9LvINc2PHucm6O7CimxjevqCMPLs/591wPkPRdRmotGUgtAU0JJfebRmhHHl6ppOvgeeukOjAZ135F/uH5vTFRu2ChHWAM+06m3/9VOyGU6K3U5ycb1SkRTBacXky1EY18+8DlE3ns6r6BoeMH/v4JsZ2TBVyJThKx5dE6nhz/dEHEHic8bfQ0469w3QX8PjeQS/tdAXSWu8IlkIWCRsiiCGhmgVs5Zb3grfaxDVuOMdNUZApfY7ZVJlEt3Fbu2pXscS5xv1O8A8gcCNYjRAVVdjsBzfiAqbk192G3CrbEtQIDAQAB"
+  notifyUrl: "https://13bcaa1d.r7.cpolar.top/alipay/notify"
+  returnUrl: "http://localhost:5173/layout/fee" # 付款成功后网页跳回的地址
+  gatewayUrl: "https://openapi-sandbox.dl.alipaydev.com/gateway.do"

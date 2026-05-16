@@ -2,8 +2,10 @@ package com.school.system.controller;
 
 import com.school.system.entity.Score;
 import com.school.system.entity.Student;
+import com.school.system.entity.ClassInfo;
 import com.school.system.repository.ScoreRepository;
 import com.school.system.repository.StudentRepository;
+import com.school.system.repository.ClassInfoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,24 +22,33 @@ public class ScoreController {
 
     @Autowired private ScoreRepository scoreRepository;
     @Autowired private StudentRepository studentRepository;
+    @Autowired private ClassInfoRepository classInfoRepository; // 引入班级表操作
 
-    // 不同身份拿到不同数据
+    // 核心补充 1：提供给前端用于匹配学生班级
+    @GetMapping("/students")
+    public List<Student> getAllStudents() {
+        return studentRepository.findAll();
+    }
+
+    // 核心补充 2：提供给前端用于下拉框展示班级列表
+    @GetMapping("/classes")
+    public List<ClassInfo> getAllClasses() {
+        return classInfoRepository.findAll();
+    }
+
     @GetMapping("/list")
     public List<Score> getList(@RequestParam String role, @RequestParam String userName, @RequestParam Integer userId) {
         List<Score> allScores = scoreRepository.findAll();
 
-        // 1. 如果是学生，只返回名字匹配的成绩
         if ("student".equals(role)) {
             return allScores.stream().filter(s -> userName.equals(s.getStudentName())).collect(Collectors.toList());
         }
-        // 2. 如果是家长，找出他绑定的所有孩子，只返回这些孩子的成绩
         else if ("parent".equals(role)) {
             List<String> childNames = studentRepository.findByParentId(userId).stream()
                     .map(Student::getName).collect(Collectors.toList());
             return allScores.stream().filter(s -> childNames.contains(s.getStudentName())).collect(Collectors.toList());
         }
 
-        // 3. 如果是老师、班主任、教务处，返回全校成绩供管理
         return allScores;
     }
 
@@ -59,7 +70,7 @@ public class ScoreController {
         Date now = new Date();
         for (Score score : scores) {
             if (score.getCreateTime() == null) {
-                score.setCreateTime(now); // 统一打上当前时间戳
+                score.setCreateTime(now);
             }
         }
         scoreRepository.saveAll(scores);

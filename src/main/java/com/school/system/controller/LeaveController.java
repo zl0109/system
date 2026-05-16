@@ -24,33 +24,59 @@ public class LeaveController {
     @Autowired
     private TeacherRepository teacherRepository;
 
-    // 🌟 核心升级：接收前端传来的角色和用户ID，进行数据隔离
+    //接收角色、用户ID、班级ID，进行三维数据物理隔离
     @GetMapping("/list")
     public List<LeaveRecord> getList(@RequestParam(defaultValue = "") String role,
-                                     @RequestParam(defaultValue = "0") Integer userId) {
+                                     @RequestParam(defaultValue = "0") Integer userId,
+                                     @RequestParam(required = false) Integer classId) {
         // 先查出所有的请假单
         List<LeaveRecord> allLeaves = leaveRepository.findAll();
+        List<LeaveRecord> filteredLeaves = new ArrayList<>();
 
-        // 🛡️ 安全拦截：如果是家长，执行数据隔离逻辑
+        //安全拦截1：家长只能看自己绑定的孩子
         if ("parent".equals(role)) {
-            // 1. 查出这个家长绑定的所有孩子
             List<Student> children = studentRepository.findByParentId(userId);
             List<Integer> childIds = new ArrayList<>();
             for (Student child : children) {
                 childIds.add(child.getStudentId());
             }
-
-            // 2. 只保留这些孩子的请假单
-            List<LeaveRecord> filteredLeaves = new ArrayList<>();
             for (LeaveRecord leave : allLeaves) {
                 if (childIds.contains(leave.getStudentId())) {
                     filteredLeaves.add(leave);
                 }
             }
-            allLeaves = filteredLeaves; // 替换结果集
+            allLeaves = filteredLeaves;
         }
+        //安全拦截2：学生本人只能看自己的
+        else if ("student".equals(role)) {
+            for (LeaveRecord leave : allLeaves) {
+                if (userId.equals(leave.getStudentId())) {
+                    filteredLeaves.add(leave);
+                }
+            }
+            allLeaves = filteredLeaves;
+        }
+        //安全拦截3：班主任只能看自己所管辖班级的学生
+        else if ("headmaster".equals(role)) {
+            if (classId != null) {
+                List<Student> classStudents = studentRepository.findByClassId(classId);
+                List<Integer> classStudentIds = new ArrayList<>();
+                for (Student s : classStudents) {
+                    classStudentIds.add(s.getStudentId());
+                }
+                for (LeaveRecord leave : allLeaves) {
+                    if (classStudentIds.contains(leave.getStudentId())) {
+                        filteredLeaves.add(leave);
+                    }
+                }
+                allLeaves = filteredLeaves;
+            } else {
+                allLeaves = new ArrayList<>(); // 没传班级ID直接返回空，防止越权
+            }
+        }
+        // 如果是 admin 管理员等最高权限，默认不进拦截器，可查看全校数据
 
-        // 🌟 翻译名字 (老师依然能看到所有的，家长只能看到自己的)
+        //翻译名字
         for (LeaveRecord leave : allLeaves) {
             if (leave.getStudentId() != null) {
                 studentRepository.findById(leave.getStudentId())

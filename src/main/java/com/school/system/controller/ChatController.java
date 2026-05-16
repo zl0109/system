@@ -171,7 +171,27 @@ public class ChatController {
     }
 
     @GetMapping("/history")
-    public List<ChatMessage> getHistory() {
-        return chatMessageRepository.findAll();
+    public List<ChatMessage> getHistory(
+            @RequestParam String myUniqueId,
+            @RequestParam(required = false) String classIds) {
+
+        List<ChatMessage> allMsgs = chatMessageRepository.findAll();
+
+        // 解析当前用户所在的群聊ID集合
+        List<String> myGroups = new ArrayList<>();
+        if (classIds != null && !classIds.trim().isEmpty()) {
+            myGroups = Arrays.asList(classIds.split(","));
+        }
+
+        List<String> finalMyGroups = myGroups;
+
+        // 核心安全隔离：只返回属于我的私聊，或者属于我所在群的群聊消息
+        return allMsgs.stream().filter(m -> {
+            boolean isMyPrivate = "PRIVATE".equals(m.getChatType()) &&
+                    (m.getSenderId().equals(myUniqueId) || m.getTargetId().equals(myUniqueId));
+            boolean isMyGroup = "GROUP".equals(m.getChatType()) &&
+                    finalMyGroups.contains(m.getTargetId());
+            return isMyPrivate || isMyGroup;
+        }).collect(Collectors.toList());
     }
 }
