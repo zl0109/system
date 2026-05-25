@@ -32,16 +32,12 @@ public class NoticeController {
         for (Notice n : allNotices) {
             //1：作业绝对不允许跨班广播！只有“通知”且 classId 为空时，才是全校公共通知。
             boolean isPublic = n.getClassId() == null && "通知".equals(n.getType());
-
             // 规则2：本班放行（当前登录学生的班级ID 必须与 作业绑定的班级ID 一致）
             boolean isSameClass = classId != null && classId.equals(n.getClassId());
-
             // 规则3：发布者放行（自己发的作业自己永远可见，便于后续删除编辑）
             boolean isPublisher = userId != null && userId.equals(n.getTeacherId());
-
             // 规则4：上帝视角放行（最高行政权限可查看全校所有班级数据）
             boolean isAdmin = "admin".equals(role) || "department".equals(role) || "leadership".equals(role);
-
             // 满足其一即可放行
             if (isPublic || isSameClass || isPublisher || isAdmin) {
                 if (n.getTeacherId() != null) {

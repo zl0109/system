@@ -51,27 +51,31 @@ public class AlipayController {
                     @RequestParam String title,
                     HttpServletResponse httpResponse) throws Exception {
 
-        // 1. 初始化支付宝客户端
-        AlipayClient alipayClient = new DefaultAlipayClient(gatewayUrl, appId, appPrivateKey, "json", "UTF-8", alipayPublicKey, "RSA2");
+        AlipayClient alipayClient = new DefaultAlipayClient(
+                gatewayUrl,
+                appId,
+                appPrivateKey,
+                "json",
+                "UTF-8",
+                alipayPublicKey,
+                "RSA2"
+        );
 
-        // 2. 创建支付请求对象
         AlipayTradePagePayRequest request = new AlipayTradePagePayRequest();
         request.setNotifyUrl(notifyUrl);
-        request.setReturnUrl(returnUrl);
 
-        // 3. 封装订单数据 (以 JSON 格式传递给支付宝)
-        // out_trade_no 就是我们数据库里的记录ID，付款成功后支付宝会原封不动传回来，用来找是谁交的钱
+        // 关键修改：支付成功后跳转到自己的状态更新接口
+        request.setReturnUrl("http://localhost:8080/fee/paySuccess?recordId=" + recordId);
+
         String bizContent = "{\"out_trade_no\":\"" + recordId + "\","
                 + "\"total_amount\":\"" + amount + "\","
                 + "\"subject\":\"" + title + "\","
                 + "\"product_code\":\"FAST_INSTANT_TRADE_PAY\"}";
         request.setBizContent(bizContent);
 
-        // 4. 调用支付宝 SDK 获得支付页面的 HTML 代码
         String form = alipayClient.pageExecute(request).getBody();
 
-        // 5. 直接把这段 HTML 甩回给前端，前端浏览器会自动渲染并跳转到支付宝扫码页面
-        httpResponse.setContentType("text/html;charset=" + "UTF-8");
+        httpResponse.setContentType("text/html;charset=UTF-8");
         httpResponse.getWriter().write(form);
         httpResponse.getWriter().flush();
         httpResponse.getWriter().close();
@@ -112,6 +116,7 @@ public class AlipayController {
                 FeeRecord record = feeRecordRepository.findById(recordId).orElse(null);
                 if (record != null && record.getPayStatus() == 0) {
                     record.setPayStatus(1); // 1 代表已支付
+                    record.setPayTime(new java.util.Date());
                     feeRecordRepository.save(record);
                 }
             }

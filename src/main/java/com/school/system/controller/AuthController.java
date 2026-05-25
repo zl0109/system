@@ -47,7 +47,6 @@ public class AuthController {
                 result.put("userId", parent.getParentId());
                 result.put("userName", parent.getName());
                 result.put("role", "parent");
-
                 //查找该家长关联的孩子，获取孩子的班级ID给家长
                 List<Student> children = studentRepository.findByParentId(parent.getParentId());
                 if (children != null && !children.isEmpty()) {
@@ -61,10 +60,8 @@ public class AuthController {
                 result.put("code", 200); result.put("msg", "教师登录成功");
                 result.put("userId", teacher.getTeacherId());
                 result.put("userName", teacher.getName());
-
                 String role = teacher.getRole() != null ? teacher.getRole() : "teacher";
                 result.put("role", role);
-
                 //如果他是班主任，查出他负责的班级ID
                 if ("headmaster".equals(role)) {
                     ClassInfo classInfo = classInfoRepository.findByHeadmasterId(teacher.getTeacherId());
@@ -108,21 +105,18 @@ public class AuthController {
     @PostMapping("/register")
     public Map<String, Object> registerParent(@RequestBody Map<String, String> payload) {
         Map<String, Object> result = new HashMap<>();
-
         String phone = payload.get("phone");
         String password = payload.get("password");
         String parentName = payload.get("parentName");
         String relation = payload.get("relation");
         String studentNo = payload.get("studentNo");
         String studentName = payload.get("studentName");
-
         // 1. 唯一性校验：手机号是否已被注册
         if (parentRepository.findByPhone(phone) != null) {
             result.put("code", 400);
             result.put("msg", "该手机号已被注册，请直接登录或找回密码");
             return result;
         }
-
         // 2. 安全身份校验：验证学号和姓名是否匹配
         Student student = studentRepository.findByStudentNoAndName(studentNo, studentName);
         if (student == null) {
@@ -130,7 +124,6 @@ public class AuthController {
             result.put("msg", "验证失败：未找到该学生，请检查学号与姓名是否填写正确");
             return result;
         }
-
         // 3. 防拐卖机制：防止一个孩子被多个账号重复绑定
         if (student.getParentId() != null) {
             result.put("code", 403);

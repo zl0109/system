@@ -215,5 +215,43 @@ public class FeeController {
         return result;
     }
 
+    // 根据缴费明细ID更新支付状态，支付宝支付成功后调用
+    // 支付宝支付成功后，同步更新缴费状态，并跳转回前端账单页面
+    @GetMapping(value = "/paySuccess", produces = "text/html;charset=UTF-8")
+    public String paySuccess(@RequestParam Integer recordId) {
+        Optional<FeeRecord> optional = feeRecordRepository.findById(recordId);
+
+        if (optional.isPresent()) {
+            FeeRecord record = optional.get();
+
+            if (record.getPayStatus() == null || record.getPayStatus() == 0) {
+                record.setPayStatus(1);
+                record.setPayTime(new Date());
+                feeRecordRepository.save(record);
+            }
+
+            return "<html><head><meta charset='UTF-8'></head>"
+                    + "<body style='font-family: Arial; text-align:center; padding-top:80px;'>"
+                    + "<h2>支付成功</h2>"
+                    + "<p>账单状态已更新，正在返回系统账单页面...</p>"
+                    + "<script>"
+                    + "setTimeout(function(){"
+                    + "window.location.href='http://localhost:5173/layout/fee';"
+                    + "}, 1200);"
+                    + "</script>"
+                    + "</body></html>";
+        }
+
+        return "<html><head><meta charset='UTF-8'></head>"
+                + "<body style='font-family: Arial; text-align:center; padding-top:80px;'>"
+                + "<h2>支付失败</h2>"
+                + "<p>未找到对应的缴费账单。</p>"
+                + "<script>"
+                + "setTimeout(function(){"
+                + "window.location.href='http://localhost:5173/layout/fee';"
+                + "}, 2000);"
+                + "</script>"
+                + "</body></html>";
+    }
 
 }
